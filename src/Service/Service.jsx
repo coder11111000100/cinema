@@ -1,24 +1,46 @@
-// const API_KEY = 'api_key=d9e5c099ca8ba6f8195ed4b40ff8ecad';
-// const xxx = `https://api.themoviedb.org/3/search/movie?${API_KEY}&query=Ren`;
-
 class Service {
-  _API_KEY = 'api_key=d9e5c099ca8ba6f8195ed4b40ff8ecad';
-  _base_URL = 'https://api.themoviedb.org/3/movie/';
+  APIKEY = 'api_key=d9e5c099ca8ba6f8195ed4b40ff8ecad';
 
-  getPopularMovies = async (pageNumber = 1) => {
-    const response = await fetch(`${this._base_URL}popular?${this._API_KEY}&page=${pageNumber}`);
+  BASEURL = 'https://api.themoviedb.org/3/';
+
+  // eslint-disable-next-line class-methods-use-this
+  baseGetRequest = async (URL) => {
+    const response = await fetch(URL);
     if (response.ok) {
-      return await response.json();
+      return response.json();
     }
+    return null;
   };
 
-  getGenresMovies = async () => {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/genre/movie/list?${this._API_KEY}&language=en-US`
-    );
-    if (response.ok) {
-      return await response.json();
-    }
+  getSessionId = () => this.baseGetRequest(`${this.BASEURL}authentication/guest_session/new?${this.APIKEY}`);
+
+  getPopularMovies = (pageNumber = 1) =>
+    this.baseGetRequest(`${this.BASEURL}movie/popular?${this.APIKEY}&page=${pageNumber}`);
+
+  getGenresMovies = () => this.baseGetRequest(`${this.BASEURL}genre/movie/list?${this.APIKEY}&language=en-US`);
+
+  getSearchMovies = (name) => this.baseGetRequest(`${this.BASEURL}search/movie?${this.APIKEY}&query=${name}`);
+
+  setRatingMovies = (id, sessionId, rate) => {
+    const url = `${this.BASEURL}movie/${id}/rating?${this.APIKEY}&guest_session_id=${sessionId}`;
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+      body: JSON.stringify({
+        value: rate,
+      }),
+    }).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('Возникла проблема: ', err.message);
+    });
+  };
+
+  deleteRateMovie = (id, sessionId) => {
+    const url = `${this.BASEURL}movie/${id}/rating?${this.APIKEY}&guest_session_id=${sessionId}`;
+    return fetch(url, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
   };
 }
 
